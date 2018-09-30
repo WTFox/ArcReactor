@@ -1,3 +1,3 @@
 #! /bin/sh
 
-cp -r ./* /Volumes/CIRCUITPY/
+cp -r ./*.py /Volumes/CIRCUITPY/
