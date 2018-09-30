@@ -1,50 +1,62 @@
 import time
 
-import board
 import neopixel
 
-from utils import Timer, clamp_value, one_in_five_chance
+import config
+from utils import COLORS, Timer, clamp_value, one_in_five_chance
 
 
-# Colors
-LIGHT_BLUE = [0, 150, 255]
-LIGHT_PINK = [200, 0, 150]
-RED = [255, 0, 0]
-GREEN = [0, 255, 0]
-BLUE = [0, 0, 255]
-
-# Real starting values
-BRIGHTNESS_VARIANCE = 0.09
-MIN_BRIGHTNESS = 0.1
-MAX_BRIGHTNESS = 1
-
-# Dev starting values (to save my eyes)
-# BRIGHTNESS_VARIANCE = 0.01
-# MIN_BRIGHTNESS = 0.05
-# MAX_BRIGHTNESS = 0.3
-
-STARTING_BRIGHTNESS = (MIN_BRIGHTNESS + MAX_BRIGHTNESS) / 2
-
-# Set up the lights
-NUM_PIXELS = 24
-PIXEL_PIN = board.D1
-
-STRIP = neopixel.NeoPixel(PIXEL_PIN, NUM_PIXELS)
-TIMER = Timer(10)
+STRIP = neopixel.NeoPixel(config.PIXEL_PIN, config.NUM_PIXELS)
+TIMER = Timer(3)
 
 
 def main():
-    colors = [LIGHT_BLUE, LIGHT_PINK, GREEN, BLUE, RED]
-    while True:
-        for color in colors:
-            arc_reactor(color)
-    # ring_cycle(LIGHT_BLUE)
-    # rainbow_cycle()
+    """ Entry point for Circuit Python 
+    `mode` determines the pattern. The choices are:
+
+        0 - Arc Reactor pattern
+        1 - Color Chase and Color Cycle Arc Reactor
+        2 - Color Ring Cycle
+        3 - Rainbow Whell
+    """
+    mode = 0
+
+    # Arc Reactor
+    if mode == 0:
+        color_chase(COLORS['nuclear_blue'], 0.04)
+        while True:
+            arc_reactor(COLORS['nuclear_blue'])
+
+    # Color Chase and Color Cycle Arc Reactor
+    elif mode == 1:
+        while True:
+            for color in COLORS.values():
+                color_chase(color, 0.02)
+                time.sleep(0.3)
+            for color in COLORS.values():
+                arc_reactor(color)
+
+    # Color Ring Cycle
+    elif mode == 2:
+        while True:
+            for color in COLORS.values():
+                ring_cycle(color)
+
+    # Rainbow Cycle
+    elif mode == 3:
+        rainbow_cycle()
+
+
+def color_chase(color, wait):
+    for i in range(config.NUM_PIXELS):
+        STRIP[i] = color
+        time.sleep(wait)
+        STRIP.show()
 
 
 def arc_reactor(color):
     alpha_up = True
-    brightness = STARTING_BRIGHTNESS
+    brightness = config.STARTING_BRIGHTNESS
     STRIP.fill(color)
 
     while True:
@@ -62,16 +74,16 @@ def arc_reactor(color):
 def rainbow_cycle():
     while True:
         for j in range(255):
-            for i in range(len(STRIP)):
-                idx = int((i * 256 / len(STRIP)) + j)
-                STRIP[i] = wheel(idx & 255)
-            STRIP.write()
-            time.sleep(0.001)
+            for i in range(config.NUM_PIXELS):
+                rc_index = (i * 256 // config.NUM_PIXELS) + j
+                STRIP[i] = wheel(rc_index & 255)
+            STRIP.show()
 
 
 def ring_cycle(color):
     offset = 0  # Position of spinner animation
-    while True:
+    iteration = 1
+    while not iteration >= 40:  # ~3 seconds
         # A little trick here: pixels are processed in groups of 8
         # (with 2 of 8 on at a time), NeoPixel rings are 24 pixels
         # (8*3) and 16 pixels (8*2), so we can issue the same data
@@ -89,21 +101,27 @@ def ring_cycle(color):
         if offset >= 8:
             offset = 0
 
+        iteration += 1
+
 
 def adjust_brightness(alpha_up, current_brightness):
     if alpha_up:
-        current_brightness += BRIGHTNESS_VARIANCE
+        current_brightness += config.BRIGHTNESS_VARIANCE
     else:
-        current_brightness -= BRIGHTNESS_VARIANCE
+        current_brightness -= config.BRIGHTNESS_VARIANCE
 
-    if current_brightness <= MIN_BRIGHTNESS:
+    if current_brightness <= config.MIN_BRIGHTNESS:
         alpha_up = True
-    elif current_brightness >= MAX_BRIGHTNESS:
+    elif current_brightness >= config.MAX_BRIGHTNESS:
         alpha_up = False
 
     return (
         alpha_up,
-        clamp_value(current_brightness, MIN_BRIGHTNESS, MAX_BRIGHTNESS)
+        clamp_value(
+            val=current_brightness,
+            min_val=config.MIN_BRIGHTNESS,
+            max_val=config.MAX_BRIGHTNESS
+        )
     )
 
 
