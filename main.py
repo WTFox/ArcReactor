@@ -1,15 +1,22 @@
 import random
+
 import neopixel
+from digitalio import DigitalInOut, Direction, Pull
 
 import config
 from utils import COLORS, one_in_five_chance, adjust_brightness, color_chase
 
 
-strip = neopixel.NeoPixel(config.PIXEL_PIN, config.NUM_PIXELS)
+strip = neopixel.NeoPixel(config.PIXEL_PIN, config.NUM_PIXELS)  
+led = DigitalInOut(config.BUTTON_LED_PIN)
+led.direction = Direction.OUTPUT
 
 
 def main():
-    button_pressed = False
+    button = DigitalInOut(config.BUTTON_PIN)
+    button.direction = Direction.INPUT
+    button.pull = Pull.UP
+
     color = COLORS["nuclear_blue"]
     alpha_up = True
     brightness = config.STARTING_BRIGHTNESS
@@ -19,7 +26,7 @@ def main():
         if one_in_five_chance():
             alpha_up = not alpha_up
 
-        if random.randint(1, 1000) == 1000:
+        if not button.value:
             button_animation()
 
         alpha_up, brightness = adjust_brightness(alpha_up, brightness)
@@ -32,6 +39,7 @@ def button_animation():
     alpha_up = True
     brightness = config.STARTING_BRIGHTNESS
     for i in range(180):
+        led.value = True
         if one_in_five_chance():
             alpha_up = not alpha_up
 
@@ -40,6 +48,7 @@ def button_animation():
         strip.write()
 
     strip.fill(COLORS["nuclear_blue"])
+    led.value = False
 
 
 main()
