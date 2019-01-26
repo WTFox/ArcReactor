@@ -1,6 +1,6 @@
 import board
 
-DEBUG = False
+DEBUG = True
 
 BRIGHTNESS_VARIANCE = 0.09
 MIN_BRIGHTNESS = 0.1
