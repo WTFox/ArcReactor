@@ -3,13 +3,13 @@ import time
 import config
 
 COLORS = dict(
-    red=[255, 0, 0],
-    green=[0, 255, 0],
-    blue=[0, 0, 255],
     baja_blast=[0, 235, 100],
+    blue=[0, 0, 255],
+    green=[0, 255, 0],
+    light_pink=[255, 51, 204],
     nuclear_blue=[0, 150, 255],
-    light_pink=[200, 0, 150],
     purple=[150, 0, 255],
+    red=[255, 0, 0],
 )
 
 
